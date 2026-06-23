@@ -1,0 +1,11 @@
+# Local Composer binary (install via getcomposer.org on each machine)
+/composer
+/composer.phar
+
+# OS
+.DS_Store
+
+# APK build artifacts
+*.apk
+
+# api/ and app/ keep their own .gitignore files (vendor/, .env, build/, etc.)

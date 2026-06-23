@@ -1,0 +1,43 @@
+---
+description: Persistent project memory for HR System
+alwaysApply: true
+---
+
+# HR System — Project Memory
+
+## Identity
+- Bilingual (Arabic/English, RTL-aware) HR platform
+- Backend: Laravel 13 REST API (PHP 8.4), `api/` directory
+- Frontend: Flutter client (web + iOS + Android), `app/` directory
+- DB: MySQL/MariaDB in production; SQLite locally
+
+## Architecture
+- Auth: Laravel Sanctum tokens + spatie/laravel-permission RBAC
+- 6 roles: employee, supervisor, section_manager, hr_director, finance, hr_admin
+- Custom `hr.role` middleware (EnsureRole) avoids Sanctum/spatie guard mismatch
+- SetLocale middleware reads Accept-Language header (en|ar)
+- Approval engine: config-driven chains in `config/hr.php`, generic ApprovalService
+- Approvable trait (polymorphic MorphMany to approval_steps) on LeaveRequest, LoanRequest, ShiftChangeRequest, ResignationRequest
+- Sensitive fields (basic_salary, national_id) encrypted at rest, hidden by default
+- Employee codes: section main_code + employee sub_code = full_code (e.g. "10-0001")
+- Attendance: GPS geofenced (haversine), lateness/overtime computed from shift schedule
+- Push: FCM via PushNotifier service, device tokens stored per user
+- Scheduler: hr:missing-punch-reminders every 5 minutes
+
+## Key Files
+- `api/config/hr.php` — domain config (roles, approval chains, leave types, attendance rules)
+- `api/app/Services/ApprovalService.php` — multi-step approval engine
+- `api/app/Services/AttendanceService.php` — geofence + lateness/overtime
+- `api/app/Services/PushNotifier.php` — FCM push notifications
+- `api/app/Models/Concerns/Approvable.php` — polymorphic approval trait
+- `api/tests/Feature/HrFlowTest.php` — behavioral spec (7 tests)
+- `app/lib/core/auth_service.dart` — Flutter auth + biometrics
+- `app/lib/core/api_client.dart` — Dio HTTP client with token + locale
+
+## Flutter State
+- Provider-based (AuthService, LocaleProvider)
+- 5 screens: Dashboard, Attendance, Requests, Approvals (managers), Employees (managers)
+- Many API modules not yet in Flutter UI: recruitment, performance, reports, compensation, documents, branch/section CRUD
+
+## Demo Logins
+- All use password `password`: hr_admin@hr.test, supervisor@hr.test, section_manager@hr.test, hr_director@hr.test, finance@hr.test, employee@hr.test
